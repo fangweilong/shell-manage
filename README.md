@@ -7,7 +7,7 @@
 [点我下载docker-compose](https://github.com/docker/compose/releases)
         
 ## 上传到服务器
-    注意保持目录结构不变
+    推荐上传到 /home/docker 下，但要注意保持目录结构不变
 ## 执行
     sh centos7.5-dev.sh
     
