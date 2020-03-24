@@ -245,65 +245,76 @@ firewalldEnable(){
 
 #在线安装docker
 onlineInstallDocker(){
-	# step 1: 安装相关组件和配置yum源
-	sudo yum install -y yum-utils \
-	  device-mapper-persistent-data \
-	  lvm2
-	if [ $? -ne 0 ];then
-        echo -e '\n安装失败'
-        return 1;
-    fi
+	echo -e '\n检查是否已经安装docker'
+	docker -v
+
+	if [ $? -eq 0 ];then
+		echo -e '\ndocker已安装'
 	
-	sudo yum-config-manager \
-		--add-repo \
-		http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
-	if [ $? -ne 0 ];then
-            echo -e '\n设置失败'
-            return 1;
-    fi	
-	# step 2: 配置缓存
-	sudo yum makecache fast
-	if [ $? -ne 0 ];then
-        echo -e '\n设置失败'
-        return 1;
-    fi
-	# step 3: 执行安装
-	sudo yum install docker-ce
-	if [ $? -ne 0 ];then
-        echo -e '\n安装失败'
-        return 1;
-    fi
-	echo -e '\ndocker版本：'
-    docker -v
+	else
+		# 安装相关组件和配置yum源
+		sudo yum install -y yum-utils \
+		device-mapper-persistent-data \
+		lvm2
+		if [ $? -ne 0 ];then
+			echo -e '\n安装失败'
+			return 1;
+		fi
+		
+		sudo yum-config-manager \
+			--add-repo \
+			http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+		if [ $? -ne 0 ];then
+				echo -e '\n设置失败'
+				return 1;
+		fi	
+		# step 2: 配置缓存
+		sudo yum makecache fast
+		if [ $? -ne 0 ];then
+			echo -e '\n设置失败'
+			return 1;
+		fi
+		# step 3: 执行安装
+		sudo yum install docker-ce
+		if [ $? -ne 0 ];then
+			echo -e '\n安装失败'
+			return 1;
+		fi
+		echo -e '\ndocker版本：'
+		docker -v
 
-	systemctl daemon-reload
+		systemctl daemon-reload
+
+	fi
 	
-	echo -e '\n安装docker-compose：'
-	sudo curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-	if [ $? -ne 0 ];then
-        echo -e '\n安装失败'
-        return 1;
-    fi
+	echo -e '\n检查是否已经安装docker-compose:'
+	docker-compose -v
 
-	echo -e '\n为docker-compose赋权：'
-	sudo chmod +x /usr/local/bin/docker-compose
-	if [ $? -ne 0 ];then
-        echo -e '\n赋权成功'
-        return 1;
-    fi
+	if [ $? -eq 0 ];then
+		echo -e '\ndocker-compose已经安装'
+	else
+		echo -e '\n安装docker-compose：'
+		sudo curl -L "https://github.com/docker/compose/releases/download/1.25.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+		if [ $? -ne 0 ];then
+			echo -e '\n安装失败'
+			return 1;
+		fi
 
-	echo -e '\ndocker-compose版本：'
-	docker-compose --version
-
-
-
+		echo -e '\n为docker-compose赋权：'
+		sudo chmod +x /usr/local/bin/docker-compose
+		if [ $? -ne 0 ];then
+			echo -e '\n赋权成功'
+			return 1;
+		fi
+		
+		echo -e '\ndocker-compose版本：'
+		docker-compose -v
+	fi
 	return 0;
 }
 
 #离线安装docker
 offlineInstallDocker(){
-	echo -e '\n请将docker-ce压缩包、docker-compose压缩包、docker.server上传到与本文件同一路径下'
-
 	echo -e '\n检查是否已经安装docker:'
 	docker -v
 
