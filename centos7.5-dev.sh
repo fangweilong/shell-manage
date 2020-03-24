@@ -32,8 +32,8 @@ readnum(){
 		echo -e "\033[33m 		200.重启docker \033[0m"
 		echo -e "\033[33m 		201.启动docker \033[0m"
 		echo -e "\033[33m 		202.停止docker \033[0m"
-		echo -e "\033[33m 		203.在线安装docker \033[0m"
-		echo -e "\033[33m 		204.离线安装docker \033[0m"
+		echo -e "\033[33m 		203.在线安装docker(包括docker-compose) \033[0m"
+		echo -e "\033[33m 		204.离线安装docker(包括docker-compose) \033[0m"
 		echo -e "\033[33m 		205.开机启动docker \033[0m"
 		echo -e "\033[33m 		206.开机禁止启动docker \033[0m"
 
@@ -275,6 +275,27 @@ onlineInstallDocker(){
     fi
 	echo -e '\ndocker版本：'
     docker -v
+
+	systemctl daemon-reload
+	
+	echo -e '\n安装docker-compose：'
+	sudo curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+	if [ $? -ne 0 ];then
+        echo -e '\n安装失败'
+        return 1;
+    fi
+
+	echo -e '\n为docker-compose赋权：'
+	sudo chmod +x /usr/local/bin/docker-compose
+	if [ $? -ne 0 ];then
+        echo -e '\n赋权成功'
+        return 1;
+    fi
+
+	echo -e '\ndocker-compose版本：'
+	docker-compose --version
+
+
 
 	return 0;
 }
