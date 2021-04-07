@@ -1,6 +1,6 @@
 # 注意点
 
-## 官方下载地址
+## docker官方下载地址
 
     自行下载需要的版本。
     测试版本为docker 19.03.5,docker-compose 1.24.3
@@ -15,5 +15,6 @@
 
 ## 执行
 
-    sh centos7.5-dev.sh
+    centos系列：sh main.sh
+    debian系列：bash main.sh
     其他的根据脚本提示操作
