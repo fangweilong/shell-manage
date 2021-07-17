@@ -14,7 +14,10 @@ echo "============================================================"
 
 flag=12344
 
-dockerFilePath=offline-file/docker
+# 获取到当前工作目录。是以main.sh为基准
+DIR=$(cd $(dirname $0) && pwd )
+
+dockerFilePath=$DIR/shell/offline-file/docker
 
 #主方法
 readnum(){
@@ -141,7 +144,7 @@ offlineInstallDocker(){
 
 		return 0;
 	else
-		read -p '请输入完整的docker压缩包文件名（仅包名）:' FILENAME
+		read -p '请输入完整的docker压缩包文件名（仅文件名，注意文件路径要按照脚本规定的路径）:' FILENAME
 
 		searchFile $dockerFilePath/$FILENAME
 		if [ $? -ne 0 ];then
@@ -151,7 +154,7 @@ offlineInstallDocker(){
 
 		echo -e '\n解压文件...'
 
-		tar -xzvf $dockerFilePath/$FILENAME -C docker/
+		tar -xzvf $dockerFilePath/$FILENAME -C $dockerFilePath/
 		if [ $? -eq 0 ];then
 			echo -e '\n将docker目录移到/usr/bin目录下...'
 			cp $dockerFilePath/docker/* /usr/bin/
@@ -167,7 +170,7 @@ offlineInstallDocker(){
 			fi
 			cp $dockerFilePath/docker.service /etc/systemd/system/
 			if [ $? -eq 0 ];then
-				echo -e '\n添加文件权限...'
+				echo -e '\n为docker.service添加文件权限...'
 				chmod +x /etc/systemd/system/docker.service
 				if [ $? -ne 0 ];then
 					echo -e '\n添加失败'
@@ -223,7 +226,7 @@ installDockerCompose(){
 		return 0;
 	else
 		#安装docker-compose
-		read -p '请输入完整的docker-compose压缩包文件名（仅包名）:' DOCKERCOMPOSEFILENAME
+		read -p '请输入完整的docker-compose压缩包文件名（仅文件名，注意文件路径要按照脚本规定的路径）:' DOCKERCOMPOSEFILENAME
 		searchFile $dockerFilePath/$DOCKERCOMPOSEFILENAME
 		if [ $? -ne 0 ];then
 			echo -e '\n文件不存在'
@@ -232,19 +235,26 @@ installDockerCompose(){
 		echo -e '\n复制文件到/usr/local/bin下 并重命名为docker-compose'
 		cp $dockerFilePath/$DOCKERCOMPOSEFILENAME /usr/local/bin/docker-compose
 		if [ $? -eq 0 ];then
-			echo -e '\n赋予执行权限'
-			chmod +x /usr/local/bin/docker-compose
-			if [ $? -ne 0 ];then
-				echo -e '\n赋予权限失败'
+			## 再次检查
+			searchFile /usr/local/bin/docker-compose
+			if [ $? -eq 0 ];then
+				echo -e '\n为docker-compose赋予执行权限'
+				chmod +x /usr/local/bin/docker-compose
+				if [ $? -ne 0 ];then
+					echo -e '\n赋予权限失败'
+					return 1;
+				fi
+
+				echo -e '\ndocker-compose版本：'
+				docker-compose -v
+				if [ $? -eq 0 ];then
+					echo -e '\ndocker-compose安装成功'
+				fi
+			else
+				echo -e '\n复制失败'
 				return 1;
 			fi
-
-			echo -e '\ndocker-compose版本：'
-			docker-compose -v
-			if [ $? -eq 0 ];then
-				echo -e '\ndocker-compose安装成功'
-			fi
-		else 
+		else
 			echo -e '\n复制失败'
 			return 1;
 		fi

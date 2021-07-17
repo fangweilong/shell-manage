@@ -1,13 +1,24 @@
 # 注意点
 
+## 说明
+目前只在centos7.x系列测试过
+
+
 ## docker官方下载地址
 
-    自行下载需要的版本。
-    测试版本为docker 19.03.5,docker-compose 1.24.3
+测试版本为
+|  docker   | docker-compose  | 系统版本 |
+|  ----  | ----  | ----  |
+| 19.03.5  | 1.24.3 | centos7.4 7.6 |
+| 19.03.15  | 1.29.2 | centos7.4 7.6 | |
 
-[点我下载docker](https://download.docker.com/linux/static/stable/x86_64/)
 
-[点我下载docker-compose](https://github.com/docker/compose/releases)
+
+自行下载需要的版本。
+
+[点我进入docker下载页](https://download.docker.com/linux/static/stable/x86_64/)
+
+[点我进入docker-compose下载页](https://github.com/docker/compose/releases)
 
 ## 上传到服务器
 
