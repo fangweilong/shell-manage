@@ -18,7 +18,8 @@ echo "============================================================"
 # 公共参数
 flag=12344
 # 脚本的路径
-shPath=shell
+workdir=$(cd $(dirname $0); pwd)
+shPath=$workdir/shell
 
 #主方法
 readnum(){
