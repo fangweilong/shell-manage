@@ -9,7 +9,7 @@ echo -e "\033[33m Author:   $author	Date:     $updateDate	Version:  $version \03
 echo "注意事项："
 echo "============================================================"
 echo "	1.在线安装使用docker官方脚本，安装失败会尝试使用daoCloud脚本安装"
-echo "	1.离线安装请查看readme中说明，自行下载对应版本的离线包"
+echo "	2.离线安装请查看readme中说明，自行下载对应版本的离线包并放置到 offline-file/docker/ 下"
 echo "============================================================"
 
 flag=12344
@@ -85,15 +85,14 @@ onlineInstallDocker(){
 
 	if [ $? -eq 0 ];then
 		echo -e '\ndocker已安装'
-
 	else
 		# setp 1: 执行在线安装脚本
 		sudo curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
 
-		if [ $? -ne 0 ];then
+		if [ $? -eq 1 ];then
 			echo -e '\n使用Aliyun安装失败,尝试使用daoCloud安装...'
 			sudo curl -sSL https://get.daocloud.io/docker | sh
-			if [ $? -ne 0 ];then
+			if [ $? -eq 1 ];then
 				echo -e '\n使用daoCloud安装失败'
 				return 1;
 			fi
@@ -114,20 +113,23 @@ onlineInstallDocker(){
 	else
 		echo -e '\n安装docker-compose：'
 		sudo curl -L "https://github.com/docker/compose/releases/download/1.25.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-		if [ $? -ne 0 ];then
+		if [ $? -eq 1 ];then
 			echo -e '\n安装失败'
 			return 1;
 		fi
 
 		echo -e '\n为docker-compose赋权：'
 		sudo chmod +x /usr/local/bin/docker-compose
-		if [ $? -ne 0 ];then
+		if [ $? -eq 0 ];then
 			echo -e '\n赋权成功'
-			return 1;
+			return 0;
 		fi
 
 		echo -e '\ndocker-compose版本：'
 		docker-compose -v
+		if [ $? -eq 1 ];then
+			return 1
+		fi
 	fi
 	return 0;
 }
@@ -139,15 +141,18 @@ offlineInstallDocker(){
 
 	if [ $? -eq 0 ];then
 		echo -e '\ndocker已安装,检查docker-compose'
+
 		#调用离线安装docker-compose
 		installDockerCompose
+		if [ $? -eq 1 ];then
+			return 1;
+		fi
 
-		return 0;
 	else
 		read -p '请输入完整的docker压缩包文件名（仅文件名，注意文件路径要按照脚本规定的路径）:' FILENAME
 
 		searchFile $dockerFilePath/$FILENAME
-		if [ $? -ne 0 ];then
+		if [ $? -eq 1 ];then
 			echo -e '\n文件不存在'
 			return 1;
 		fi
@@ -158,13 +163,13 @@ offlineInstallDocker(){
 		if [ $? -eq 0 ];then
 			echo -e '\n将docker目录移到/usr/bin目录下...'
 			cp $dockerFilePath/docker/* /usr/bin/
-			if [ $? -ne 0 ];then
+			if [ $? -eq 1 ];then
 				echo -e '\n复制失败'
 				return 1;
 			fi
 			echo -e '\n将docker.service 移到/etc/systemd/system/ 目录...'
 			searchFile $dockerFilePath/docker.service
-			if [ $? -ne 0 ];then
+			if [ $? -eq 1 ];then
 				echo -e '\n文件不存在'
 				return 1
 			fi
@@ -172,31 +177,31 @@ offlineInstallDocker(){
 			if [ $? -eq 0 ];then
 				echo -e '\n为docker.service添加文件权限...'
 				chmod +x /etc/systemd/system/docker.service
-				if [ $? -ne 0 ];then
+				if [ $? -eq 1 ];then
 					echo -e '\n添加失败'
 					return 1;
 				fi
 				echo -e '\n重新加载配置文件...'
 				systemctl daemon-reload
-				if [ $? -ne 0 ];then
+				if [ $? -eq 1 ];then
 					echo -e '\n加载失败'
 					return 1;
 				fi
 				echo -e '\n启动docker...'
 				systemctl start docker
-				if [ $? -ne 0 ];then
+				if [ $? -eq 1 ];then
 					echo -e '\n启动失败'
 					return 1;
 				fi
 				echo -e '\n设置开机自启...'
 				systemctl enable docker.service
-				if [ $? -ne 0 ];then
+				if [ $? -eq 1 ];then
 					echo -e '\n开机启动失败'
 					return 1;
 				fi
 				echo -e '\ndocker版本：'
 				docker -v
-				if [ $? -ne 0 ];then
+				if [ $? -eq 1 ];then
 					echo -e '\n安装失败'
 					return 1;
 				else
@@ -211,7 +216,6 @@ offlineInstallDocker(){
 			echo -e '\n解压失败'
 			return 1;
 		fi
-
 	fi
 
     return 0
@@ -223,12 +227,11 @@ installDockerCompose(){
 	docker-compose -v
 	if [ $? -eq 0 ];then
 		echo -e '\ndocker-compose已安装'
-		return 0;
 	else
 		#安装docker-compose
 		read -p '请输入完整的docker-compose压缩包文件名（仅文件名，注意文件路径要按照脚本规定的路径）:' DOCKERCOMPOSEFILENAME
 		searchFile $dockerFilePath/$DOCKERCOMPOSEFILENAME
-		if [ $? -ne 0 ];then
+		if [ $? -eq 1 ];then
 			echo -e '\n文件不存在'
 			return 1;
 		fi
@@ -240,15 +243,16 @@ installDockerCompose(){
 			if [ $? -eq 0 ];then
 				echo -e '\n为docker-compose赋予执行权限'
 				chmod +x /usr/local/bin/docker-compose
-				if [ $? -ne 0 ];then
+				if [ $? -eq 1 ];then
 					echo -e '\n赋予权限失败'
 					return 1;
 				fi
 
 				echo -e '\ndocker-compose版本：'
 				docker-compose -v
-				if [ $? -eq 0 ];then
-					echo -e '\ndocker-compose安装成功'
+				if [ $? -eq 1 ];then
+					echo -e '\ndocker-compose安装失败'
+					return 1;
 				fi
 			else
 				echo -e '\n复制失败'
@@ -259,13 +263,15 @@ installDockerCompose(){
 			return 1;
 		fi
 	fi
+
+	return 0;
 }
 
 
 #启动docker
 startDocker(){
 	systemctl start docker
-	if [ $? -ne 0 ];then
+	if [ $? -eq 0 ];then
 		echo -e '\n启动失败'
 		return 1;
     fi
@@ -276,7 +282,7 @@ startDocker(){
 #停止docker
 stopDocker(){
 	systemctl stop docker
-	if [ $? -ne 0 ];then
+	if [ $? -eq 0 ];then
 		echo -e '\n停止失败'
 		return 1;
     fi
@@ -287,7 +293,7 @@ stopDocker(){
 #开机启动docker
 enableDocker(){
 	systemctl enable docker
-	if [ $? -ne 0 ];then
+	if [ $? -eq 0 ];then
 		echo -e '\n配置失败'
 		return 1;
     fi
@@ -298,7 +304,7 @@ enableDocker(){
 #禁止开机启动docker
 disableDocker(){
 	systemctl disable docker
-	if [ $? -ne 0 ];then
+	if [ $? -eq 0 ];then
 		echo -e '\n配置失败'
 		return 1;
     fi
@@ -309,24 +315,13 @@ disableDocker(){
 #重启docker
 restartDocker(){
 	systemctl disable docker
-	if [ $? -ne 0 ];then
+	if [ $? -eq 1 ];then
 		echo -e '\n重启失败'
 		return 1;
     fi
 	echo -e '\n重启成功'
 	return 0;
 }
-
-#检查文件是否存在
-#存在返回0 不存在返回1
-function searchFile(){
-    if [ -f "$1" ]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
 
 readnum
 

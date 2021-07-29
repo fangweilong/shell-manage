@@ -4,7 +4,8 @@
 目前只在centos7.x系列测试过
 
 
-## docker官方下载地址
+## docker
+### 官方下载地址
 
 测试版本为
 |  docker   | docker-compose  | 系统版本 |
@@ -20,9 +21,16 @@
 
 [点我进入docker-compose下载页](https://github.com/docker/compose/releases)
 
-## 上传到服务器
+### 上传到服务器
 
     推荐上传到 /home/docker 下，但要注意保持目录结构不变
+
+
+## nginx
+
+### 官方下载地址
+[点我进入下载页](http://nginx.org/packages/centos/7/x86_64/RPMS/)
+
 
 ## 执行
 

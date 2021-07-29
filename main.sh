@@ -38,10 +38,13 @@ readnum(){
 		echo -e "\033[33m 		3.防火墙管理  \033[0m"
 
 		echo -e "\033[34m 	Docker \033[0m"
-		echo -e "\033[33m 		4.docker相关 \033[0m"
+		echo -e "\033[33m 		4.Docker相关 \033[0m"
 
 		echo -e "\033[34m 	主机 \033[0m"
 		echo -e "\033[33m 		5.主机管理 \033[0m"
+
+		echo -e "\033[34m 	Nginx \033[0m"
+		echo -e "\033[33m 		6.Nginx管理 \033[0m"
 
 		echo -e "\033[34m 	111111.退出  \033[0m"
 		echo -e ""
@@ -73,6 +76,11 @@ readnum(){
 			# 主机管理
 			5)
 			computerManage
+			 ;;
+
+			# nginx管理
+			6)
+			nginxManage
 			 ;;
 
 			#退出
@@ -109,6 +117,12 @@ firewalldManage(){
 # 调用主机管理
 computerManage(){
     source $shPath/computer.sh
+}
+
+
+# 调用nginx管理
+nginxManage(){
+    source $shPath/nginx.sh
 }
 
 
