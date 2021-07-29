@@ -120,7 +120,7 @@ offlineInstallNginx(){
 #启动nginx
 startNginx(){
 	systemctl start nginx
-	if [ $? -eq 1 ];then
+	if [ $? -ne 0 ];then
 		echo -e '\n启动失败'
 		return 1;
     fi
@@ -131,7 +131,7 @@ startNginx(){
 #停止Nginx
 stopNginx(){
 	systemctl stop nginx
-	if [ $? -eq 1 ];then
+	if [ $? -ne 0 ];then
 		echo -e '\n停止失败'
 		return 1;
     fi
@@ -142,7 +142,7 @@ stopNginx(){
 #开机启动Nginx
 enableNginx(){
 	systemctl enable nginx
-	if [ $? -eq 1 ];then
+	if [ $? -ne 0 ];then
 		echo -e '\n配置失败'
 		return 1;
     fi
@@ -153,7 +153,7 @@ enableNginx(){
 #禁止开机启动Nginx
 disableNginx(){
 	systemctl disable nginx
-	if [ $? -eq 1 ];then
+	if [ $? -ne 0 ];then
 		echo -e '\n配置失败'
 		return 1;
     fi
@@ -164,7 +164,7 @@ disableNginx(){
 #重启Nginx
 restartNginx(){
 	systemctl disable nginx
-	if [ $? -eq 1 ];then
+	if [ $? -ne 0 ];then
 		echo -e '\n重启失败'
 		return 1;
     fi
@@ -175,7 +175,7 @@ restartNginx(){
 #nginx版本
 nginxVersion(){
 	nginx -v
-	if [ $? -eq 1 ];then
+	if [ $? -ne 0 ];then
 		echo -e '\nnginx不存在或未启动'
 		return 1;
     fi
@@ -185,7 +185,8 @@ nginxVersion(){
 #nginx状态
 nginxStatus(){
 	systemctl status nginx
-	if [ $? -eq 1 ];then
+	echo $?
+	if [ $? -ne 0 ];then
 		echo -e '\nnginx不存在或未启动'
 		return 1;
     fi
@@ -195,14 +196,15 @@ nginxStatus(){
 # 卸载nginx
 nginxRemove(){
     nginxStatus
-    if [ $? -eq 1 ];then
+
+    if [ $? -ne 0 ];then
         echo -e '\nnginx未安装，不需要卸载'
 		return 1;
     fi
 
     echo -e '\n未确保误触进行nginx移除操作，请输入以下随机数字'
     RandomNum="`date +%s |cksum |cut -d " " -f 1`%100" |bc;
-    echo $RandomNum
+    echo -e $RandomNum
     read -p '请输入:' confirm
     if [ $RandomNum -ne confirm ];then
         echo -e '输入错误,退出删除操作'
@@ -211,7 +213,7 @@ nginxRemove(){
 
     yum remove -y nginx
 
-    if [ $? -eq 1 ];then
+    if [ $? -ne 0 ];then
 		echo -e '\nnginx移除失败'
 		return 1;
     fi

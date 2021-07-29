@@ -89,10 +89,10 @@ onlineInstallDocker(){
 		# setp 1: 执行在线安装脚本
 		sudo curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
 
-		if [ $? -eq 1 ];then
+		if [ $? -ne 0 ];then
 			echo -e '\n使用Aliyun安装失败,尝试使用daoCloud安装...'
 			sudo curl -sSL https://get.daocloud.io/docker | sh
-			if [ $? -eq 1 ];then
+			if [ $? -ne 0 ];then
 				echo -e '\n使用daoCloud安装失败'
 				return 1;
 			fi
@@ -113,7 +113,7 @@ onlineInstallDocker(){
 	else
 		echo -e '\n安装docker-compose：'
 		sudo curl -L "https://github.com/docker/compose/releases/download/1.25.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-		if [ $? -eq 1 ];then
+		if [ $? -ne 0 ];then
 			echo -e '\n安装失败'
 			return 1;
 		fi
@@ -127,7 +127,7 @@ onlineInstallDocker(){
 
 		echo -e '\ndocker-compose版本：'
 		docker-compose -v
-		if [ $? -eq 1 ];then
+		if [ $? -ne 0 ];then
 			return 1
 		fi
 	fi
@@ -163,7 +163,7 @@ offlineInstallDocker(){
 		if [ $? -eq 0 ];then
 			echo -e '\n将docker目录移到/usr/bin目录下...'
 			cp $dockerFilePath/docker/* /usr/bin/
-			if [ $? -eq 1 ];then
+			if [ $? -ne 0 ];then
 				echo -e '\n复制失败'
 				return 1;
 			fi
@@ -177,31 +177,31 @@ offlineInstallDocker(){
 			if [ $? -eq 0 ];then
 				echo -e '\n为docker.service添加文件权限...'
 				chmod +x /etc/systemd/system/docker.service
-				if [ $? -eq 1 ];then
+				if [ $? -ne 0 ];then
 					echo -e '\n添加失败'
 					return 1;
 				fi
 				echo -e '\n重新加载配置文件...'
 				systemctl daemon-reload
-				if [ $? -eq 1 ];then
+				if [ $? -ne 0 ];then
 					echo -e '\n加载失败'
 					return 1;
 				fi
 				echo -e '\n启动docker...'
 				systemctl start docker
-				if [ $? -eq 1 ];then
+				if [ $? -ne 0 ];then
 					echo -e '\n启动失败'
 					return 1;
 				fi
 				echo -e '\n设置开机自启...'
 				systemctl enable docker.service
-				if [ $? -eq 1 ];then
+				if [ $? -ne 0 ];then
 					echo -e '\n开机启动失败'
 					return 1;
 				fi
 				echo -e '\ndocker版本：'
 				docker -v
-				if [ $? -eq 1 ];then
+				if [ $? -ne 0 ];then
 					echo -e '\n安装失败'
 					return 1;
 				else
@@ -243,14 +243,14 @@ installDockerCompose(){
 			if [ $? -eq 0 ];then
 				echo -e '\n为docker-compose赋予执行权限'
 				chmod +x /usr/local/bin/docker-compose
-				if [ $? -eq 1 ];then
+				if [ $? -ne 0 ];then
 					echo -e '\n赋予权限失败'
 					return 1;
 				fi
 
 				echo -e '\ndocker-compose版本：'
 				docker-compose -v
-				if [ $? -eq 1 ];then
+				if [ $? -ne 0 ];then
 					echo -e '\ndocker-compose安装失败'
 					return 1;
 				fi
@@ -271,7 +271,7 @@ installDockerCompose(){
 #启动docker
 startDocker(){
 	systemctl start docker
-	if [ $? -eq 0 ];then
+	if [ $? -ne 0 ];then
 		echo -e '\n启动失败'
 		return 1;
     fi
@@ -282,7 +282,7 @@ startDocker(){
 #停止docker
 stopDocker(){
 	systemctl stop docker
-	if [ $? -eq 0 ];then
+	if [ $? -ne 0 ];then
 		echo -e '\n停止失败'
 		return 1;
     fi
@@ -293,7 +293,7 @@ stopDocker(){
 #开机启动docker
 enableDocker(){
 	systemctl enable docker
-	if [ $? -eq 0 ];then
+	if [ $? -ne 0 ];then
 		echo -e '\n配置失败'
 		return 1;
     fi
@@ -304,7 +304,7 @@ enableDocker(){
 #禁止开机启动docker
 disableDocker(){
 	systemctl disable docker
-	if [ $? -eq 0 ];then
+	if [ $? -ne 0 ];then
 		echo -e '\n配置失败'
 		return 1;
     fi
@@ -315,7 +315,7 @@ disableDocker(){
 #重启docker
 restartDocker(){
 	systemctl disable docker
-	if [ $? -eq 1 ];then
+	if [ $? -ne 1 ];then
 		echo -e '\n重启失败'
 		return 1;
     fi
