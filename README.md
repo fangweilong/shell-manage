@@ -1,5 +1,7 @@
 # 注意点
 
+## 申请jetbrains开发者License
+
 ## 说明
 目前只在centos7.x系列测试过
 
