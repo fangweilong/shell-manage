@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 节点所在路径
+# 节点所在路径 路径最后带斜杠
 servicePath=/data/web/;
 # 节点文件夹名
 nodePath=tomcat-8080;
@@ -13,7 +13,7 @@ backupFolder=`date +%F`;
 # 备份的文件夹规则名（具体的文件夹名）
 backupFileName=`date +%F-%s`;
 
-# 要部署的jar所在路径
+# 要部署的jar所在路径 路径最后带斜杠
 jarPath="/home/tomcat/test/";
 # 要部署的war文件名(没有扩展名)-数组
 warName=(test1 test2)
