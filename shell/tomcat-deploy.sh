@@ -1,5 +1,10 @@
 #!/bin/bash
 
+:<<!
+  tomcato部署war项目的快捷脚本
+  注意各种文件夹的路径配置
+!
+
 # 节点所在路径 路径最后带斜杠
 servicePath=/data/web/;
 # 节点文件夹名
