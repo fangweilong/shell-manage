@@ -1,7 +1,7 @@
 #!/bin/bash
 
 :<<!
-  tomcato部署war项目的快捷脚本
+  tomcat部署war项目的快捷脚本
   注意各种文件夹的路径配置
 !
 
@@ -9,6 +9,11 @@
 servicePath=/data/web/;
 # 节点文件夹名
 nodePath=tomcat-8080;
+# 要部署的jar所在路径 路径最后带斜杠
+jarPath="/home/tomcat/test/";
+# 要部署的war文件名(没有扩展名)-数组
+warName=(test1 test2)
+
 # 节点的完整路径
 nodeFullPath="$servicePath$nodePath";
 # 备份的文件夹名
@@ -17,11 +22,6 @@ backup=backup;
 backupFolder=`date +%F`;
 # 备份的文件夹规则名（具体的文件夹名）
 backupFileName=`date +%F-%s`;
-
-# 要部署的jar所在路径 路径最后带斜杠
-jarPath="/home/tomcat/test/";
-# 要部署的war文件名(没有扩展名)-数组
-warName=(test1 test2)
 # 关闭成功的检测间隔（秒）
 checkInterval=5
 
