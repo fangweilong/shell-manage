@@ -19,9 +19,9 @@ nodeFullPath="$servicePath$nodePath";
 # 备份的文件夹名
 backup=backup;
 # 备份的日期
-backupFolder=`date +%F`;
+backupFolder=$(date +%F);
 # 备份的文件夹规则名（具体的文件夹名）
-backupFileName=`date +%F-%s`;
+backupFileName=$(date +%F-%s);
 # 关闭成功的检测间隔（秒）
 checkInterval=5
 
@@ -42,7 +42,7 @@ back(){
 
 # 对war进行操作
 war(){
-  cd webapps
+  cd $nodeFullPath/webapps
   for ele in ${warName[@]}; do
     echo "---删除原本的war包 ${ele}.war---"
     rm -rf $ele.war
@@ -55,7 +55,7 @@ war(){
 # 操作tomcat
 tomcatStop(){
   echo "---停止tomcat---"
-  sh bin/catalina.sh stop
+  sh $nodeFullPath/bin/catalina.sh stop
   # 循环10次，每3秒检查一次是否正常关闭
   for ((i=0; i<10; i++)); do
     pid=`ps -ef | grep ${nodeFullPath} | grep -v "grep" | awk '{print $2}'`
@@ -80,7 +80,7 @@ tomcatStop(){
     kill -9 $pid
   fi
 
-  cd webapps
+  cd $nodeFullPath/webapps
   for ele in ${warName[@]}; do
     echo -e "---准备删除webapps下的${ele}---"
     rm -rf $ele
@@ -92,7 +92,7 @@ tomcatStop(){
 
 tomcatStart(){
   echo "---启动tomcat---"
-  sh bin/catalina.sh start
+  sh $nodeFullPath/bin/catalina.sh start
 }
 
 
@@ -104,7 +104,7 @@ if [ -e $nodeFullPath ]; then
   cd $nodeFullPath
   echo -e "-"
 else
-  echo -e `---节点文件夹不存在，请检查---\n`
+  echo -e "---节点文件夹不存在，请检查---\n"
   exit 1
 fi
 
