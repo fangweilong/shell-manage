@@ -134,6 +134,7 @@ function searchFile(){
     if [ -f "$1" ]; then
         return 0
     else
+		echo -e "$1 不存在"
         return 1
     fi
 }
