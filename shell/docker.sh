@@ -30,10 +30,14 @@ readnum(){
 		echo -e "\033[33m 		1.重启docker \033[0m"
 		echo -e "\033[33m 		2.启动docker \033[0m"
 		echo -e "\033[33m 		3.停止docker \033[0m"
-		echo -e "\033[33m 		4.在线安装docker(包括docker-compose) \033[0m"
-		echo -e "\033[33m 		5.离线安装docker(包括docker-compose) \033[0m"
-		echo -e "\033[33m 		6.开机启动docker \033[0m"
-		echo -e "\033[33m 		7.开机禁止启动docker \033[0m"
+		echo -e "\033[33m 		10.在线安装docker(包括docker-compose) \033[0m"
+		echo -e "\033[33m 		11.在线升级docker(包括docker-compose) \033[0m"
+		echo -e "\033[33m 		20.离线安装docker(包括docker-compose) \033[0m"
+		echo -e "\033[33m 		21.离线更新docker(包括docker-compose) \033[0m"
+		echo -e "\033[33m 		30.开机启动docker \033[0m"
+		echo -e "\033[33m 		31.开机禁止启动docker \033[0m"
+		echo -e "\033[33m 		100.删除docker \033[0m"
+		echo -e "\033[33m 		101.删除老版本docker \033[0m"
 
 		echo -e "\033[34m 	111111.退出  \033[0m"
 		echo -e ""
@@ -53,17 +57,29 @@ readnum(){
 			3)
 			stopDocker
 			 ;;
-			4)
+			10)
 			onlineInstallDocker
 			 ;;
-			5)
+			11)
+			onlineUpgradeDocker
+			 ;;
+			20)
 			offlineInstallDocker
 			 ;;
-			6)
+			21)
+			offlineUpgradeDocker
+			 ;;
+			30)
 			enableDocker
 			 ;;
-			7)
+			31)
 			disableDocker
+			 ;;
+			100)
+			removeDocker
+			 ;;
+			 101)
+			removeOldDocker
 			 ;;
 
 			#退出
@@ -86,23 +102,13 @@ onlineInstallDocker(){
 	if [ $? -eq 0 ];then
 		echo -e '\ndocker已安装'
 	else
-		# setp 1: 执行在线安装脚本
-		sudo curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
+		echo -e '\n安装yum-utils'
 
-		if [ $? -ne 0 ];then
-			echo -e '\n使用Aliyun安装失败,尝试使用daoCloud安装...'
-			sudo curl -sSL https://get.daocloud.io/docker | sh
-			if [ $? -ne 0 ];then
-				echo -e '\n使用daoCloud安装失败'
-				return 1;
-			fi
-		fi
+		yum install -y yum-utils
+
+
 		echo -e '\ndocker版本：'
-
 		docker -v
-		# 重新加载
-		systemctl daemon-reload
-
 	fi
 
 	echo -e '\n检查是否已经安装docker-compose:'
@@ -111,7 +117,9 @@ onlineInstallDocker(){
 	if [ $? -eq 0 ];then
 		echo -e '\ndocker-compose已经安装'
 	else
-		echo -e '\n安装docker-compose：'
+		echo -e '\n请指定docker-compose版本： '
+		# todo
+		read docker-compose-version
 		sudo curl -L "https://github.com/docker/compose/releases/download/1.25.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 		if [ $? -ne 0 ];then
 			echo -e '\n安装失败'
@@ -134,6 +142,59 @@ onlineInstallDocker(){
 	return 0;
 }
 
+#在线升级docker
+onlineInstallDocker(){
+	echo -e '\n检查是否已经安装docker'
+	docker -v
+
+	if [ $? -eq 0 ];then
+		echo -e '\ndocker已安装'
+	else
+		#检查是否有yum-utils
+		yum info installed yum-utils
+		if [ $? -ne 0 ];then
+			echo -e '\n缺失yum-utils，正在安装中...'
+			yum -y install yum-utils
+
+			if [ $? -eq 0 ];then
+				echo -e '\nyum-utils安装成功'
+			else
+				echo -e '\nyum-utils安装失败，请检查'
+				return 1;
+			fi
+		fi
+
+		# 更新存储库
+		sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+		echo -e '\n开始安装docker...'
+		echo -e '\n需要安装的docker指定版本（最新稳定版直接回车）：'
+
+		read dockerVersion
+
+		if [ ${#dockerVersion} -eq 0 ];then
+			echo -e '\n即将开始安装最新正式版docker(包含docker-ce、docker-buildx、docker-compose)，请等待...'
+			sudo yum install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+		else
+			echo -e '\n您指定了安装 $dockerVersion 版本的docker'
+			echo -e '\n即将开始安装docker，请等待...'
+			sudo yum install docker-ce-$dockerVersion docker-ce-cli-$dockerVersion containerd.io docker-buildx-plugin docker-compose-plugin
+			if [ $? -eq 0 ];then
+				echo -e '\n安装成功'
+				echo -e '\ndocker版本：'
+				docker -v
+
+				echo -e '\ndocker compose版本：'
+				docker compose version
+			else
+				echo -e '\ndocker安装失败，请检查后重试'
+				return 1;
+			fi
+		fi
+	fi
+	return 0;
+}
+
 #离线安装docker
 offlineInstallDocker(){
 	echo -e '\n检查是否已经安装docker:'
@@ -141,13 +202,11 @@ offlineInstallDocker(){
 
 	if [ $? -eq 0 ];then
 		echo -e '\ndocker已安装,检查docker-compose'
-
 		#调用离线安装docker-compose
 		installDockerCompose
 		if [ $? -eq 1 ];then
 			return 1;
 		fi
-
 	else
 		read -p '请输入完整的docker压缩包文件名（仅文件名，注意文件路径要按照脚本规定的路径）:' FILENAME
 
@@ -157,44 +216,19 @@ offlineInstallDocker(){
 			return 1;
 		fi
 
-		echo -e '\n解压文件...'
+		echo -e '\n安装中，请等待...'
 
-		tar -xzvf $dockerFilePath/$FILENAME -C $dockerFilePath/
+		sudo yum install $dockerFilePath/$FILENAME
+
 		if [ $? -eq 0 ];then
-			echo -e '\n将docker目录移到/usr/bin目录下...'
-			cp $dockerFilePath/docker/* /usr/bin/
-			if [ $? -ne 0 ];then
-				echo -e '\n复制失败'
-				return 1;
-			fi
-			echo -e '\n将docker.service 移到/etc/systemd/system/ 目录...'
-			searchFile $dockerFilePath/docker.service
-			if [ $? -eq 1 ];then
-				echo -e '\n文件不存在'
-				return 1
-			fi
-			cp $dockerFilePath/docker.service /etc/systemd/system/
-			if [ $? -eq 0 ];then
-				echo -e '\n为docker.service添加文件权限...'
-				chmod +x /etc/systemd/system/docker.service
-				if [ $? -ne 0 ];then
-					echo -e '\n添加失败'
-					return 1;
-				fi
-				echo -e '\n重新加载配置文件...'
-				systemctl daemon-reload
-				if [ $? -ne 0 ];then
-					echo -e '\n加载失败'
-					return 1;
-				fi
-				echo -e '\n启动docker...'
-				systemctl start docker
+				echo -e '\n安装成功，准备启动docker...'
+				sudo systemctl start docker
 				if [ $? -ne 0 ];then
 					echo -e '\n启动失败'
 					return 1;
 				fi
-				echo -e '\n设置开机自启...'
-				systemctl enable docker.service
+				echo -e '\n设置docker开机自启...'
+				sudo systemctl enable docker.service
 				if [ $? -ne 0 ];then
 					echo -e '\n开机启动失败'
 					return 1;
@@ -208,12 +242,8 @@ offlineInstallDocker(){
 					#调用离线安装docker-compose
 					installDockerCompose
 				fi
-			else
-				echo -e '\n复制失败'
-				return 1;
-			fi
 		else
-			echo -e '\n解压失败'
+			echo -e '\ndocker安装失败'
 			return 1;
 		fi
 	fi
@@ -221,52 +251,60 @@ offlineInstallDocker(){
     return 0
 }
 
-#安装docker-compose
-installDockerCompose(){
-	echo -e '\n检查docker-compose是否安装：'
-	docker-compose -v
+#离线升级docker
+offlineUpgradeDocker(){
+	echo -e '\ndocker升级前的版本为:'
+	docker -v
+
 	if [ $? -eq 0 ];then
-		echo -e '\ndocker-compose已安装'
-	else
-		#安装docker-compose
-		read -p '请输入完整的docker-compose压缩包文件名（仅文件名，注意文件路径要按照脚本规定的路径）:' DOCKERCOMPOSEFILENAME
-		searchFile $dockerFilePath/$DOCKERCOMPOSEFILENAME
+		echo -e '\n升级前关闭docker，防止出现问题'
+		echo -e '\n关闭中.....'
+		sudo systemctl stop docker
+
+		read -p '请输入完整的docker压缩包文件名（仅文件名，注意文件路径要按照脚本规定的路径）:' FILENAME
+		searchFile $dockerFilePath/$FILENAME
 		if [ $? -eq 1 ];then
 			echo -e '\n文件不存在'
 			return 1;
 		fi
-		echo -e '\n复制文件到/usr/local/bin下 并重命名为docker-compose'
-		cp $dockerFilePath/$DOCKERCOMPOSEFILENAME /usr/local/bin/docker-compose
-		if [ $? -eq 0 ];then
-			## 再次检查
-			searchFile /usr/local/bin/docker-compose
-			if [ $? -eq 0 ];then
-				echo -e '\n为docker-compose赋予执行权限'
-				chmod +x /usr/local/bin/docker-compose
-				if [ $? -ne 0 ];then
-					echo -e '\n赋予权限失败'
-					return 1;
-				fi
 
-				echo -e '\ndocker-compose版本：'
-				docker-compose -v
+		echo -e '\n升级中，请等待...'
+
+		sudo yum -y upgrade $dockerFilePath/$FILENAME
+
+		if [ $? -eq 0 ];then
+				echo -e '\n安装成功，准备启动docker...'
+				sudo systemctl start docker
 				if [ $? -ne 0 ];then
-					echo -e '\ndocker-compose安装失败'
+					echo -e '\n启动失败'
 					return 1;
 				fi
-			else
-				echo -e '\n复制失败'
-				return 1;
-			fi
+				echo -e '\n设置docker开机自启...'
+				sudo systemctl enable docker.service
+				if [ $? -ne 0 ];then
+					echo -e '\n开机启动失败'
+					return 1;
+				fi
+				echo -e '\ndocker升级后的版本：'
+				docker -v
+				if [ $? -ne 0 ];then
+					echo -e '\n安装失败'
+					return 1;
+				else
+					#调用离线安装docker-compose
+					installDockerCompose
+				fi
 		else
-			echo -e '\n复制失败'
+			echo -e '\ndocker安装失败'
 			return 1;
 		fi
+	else
+		echo -e '\ndocker未安装，请检查后重试或直接离线安装docker'
+		return 1;
 	fi
 
-	return 0;
+    return 0
 }
-
 
 #启动docker
 startDocker(){
@@ -292,7 +330,9 @@ stopDocker(){
 
 #开机启动docker
 enableDocker(){
-	systemctl enable docker
+	sudo systemctl enable docker.service
+	sudo systemctl enable containerd.service
+
 	if [ $? -ne 0 ];then
 		echo -e '\n配置失败'
 		return 1;
@@ -303,7 +343,9 @@ enableDocker(){
 
 #禁止开机启动docker
 disableDocker(){
-	systemctl disable docker
+	sudo systemctl disable docker.service
+	sudo systemctl disable containerd.service
+
 	if [ $? -ne 0 ];then
 		echo -e '\n配置失败'
 		return 1;
@@ -320,6 +362,38 @@ restartDocker(){
 		return 1;
     fi
 	echo -e '\n重启成功'
+	return 0;
+}
+
+#删除docker
+removeDocker(){
+	echo -e '\n为确保不是误触进行docker移除操作，请输入以下随机数字'
+    RandomNum="`date +%s |cksum |cut -d " " -f 1`%100" |bc;
+    echo -e $RandomNum
+    read -p '请输入:' confirm
+    if [ $RandomNum -ne confirm ];then
+        echo -e '输入错误,退出删除操作'
+        return 1;
+    fi
+
+	echo -e '\n卸载docker。注意：不会删除镜像、容器、卷、网络等数据，只删除docker本体'
+	sudo yum remove docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras
+	return 0;
+}
+
+
+#删除老版本的docker
+removeOldDocker(){
+	echo -e '\n先卸载docker。注意：不会删除镜像、容器、卷、网络等数据，只删除docker本体'
+	sudo yum remove docker \
+                  docker-client \
+                  docker-client-latest \
+                  docker-common \
+                  docker-latest \
+                  docker-latest-logrotate \
+                  docker-logrotate \
+                  docker-engine
+
 	return 0;
 }
 
