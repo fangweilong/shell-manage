@@ -175,6 +175,7 @@ offlineInstallDocker(){
 				echo -e '\ndocker.sock复制失败'
 			fi
 
+			sudo systemctl daemon-reload
 		else
 			echo -e '\n安装失败'
 			return 1;
