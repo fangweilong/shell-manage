@@ -125,11 +125,11 @@ onlineInstallDocker(){
 
 		if [ ${#dockerVersion} -eq 0 ];then
 			echo -e '\n即将开始安装最新正式版docker，请等待...'
-			sudo yum install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras
+			sudo yum install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras --allowerasing
 		else
 			echo -e '\n您指定了安装 $dockerVersion 版本的docker'
 			echo -e '\n即将开始安装docker，请等待...'
-			sudo yum install docker-ce-$dockerVersion docker-ce-cli-$dockerVersion containerd.io docker-buildx-plugin docker-compose-plugin
+			sudo yum install docker-ce-$dockerVersion docker-ce-cli-$dockerVersion containerd.io docker-buildx-plugin docker-compose-plugin --allowerasing
 			if [ $? -eq 0 ];then
 				echo -e '\n安装成功'
 				echo -e '\ndocker版本：'
